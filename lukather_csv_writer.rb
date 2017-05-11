@@ -1,5 +1,7 @@
 require 'nokogiri'
 require 'open-uri'
+require 'csv'
+require 'pry'
 
 years = 1977..2016
 
@@ -52,6 +54,10 @@ class Title
     all.find { |t| t.title = title }
   end
 
+  def self.find_by_year(year)
+    Title.all.select { |t| t.year == year }
+  end
+
   attr_accessor :artist, :year, :title
 
   def initialize(title, artist, year)
@@ -73,3 +79,28 @@ years.each do |y|
   end
 end
 
+years = File.open('years.csv', 'w')
+CSV.open(years, 'w') do |csv|
+  Year.all.each do |y|
+    csv << [y.year]
+  end
+end
+years.close
+
+artists = File.open('artists.csv', 'w')
+CSV.open(artists, 'w', force_quotes: true) do |csv|
+  Artist.all.uniq.each do |a|
+    csv << [a.name.to_s]
+  end
+end
+artists.close
+
+titles = File.open('titles.csv', 'w')
+CSV.open(titles, 'w', force_quotes: true) do |csv|
+  Title.all.each do |t|
+    csv << [t.title.to_s, t.artist.name.to_s, t.year.year]
+  end
+end
+titles.close
+
+puts "Finished writing #{Year.all.length} years, #{Artist.all.uniq.length} artists, and #{Title.all.length} titles to CSV!"
