@@ -37,6 +37,10 @@ RUN apt-get update && apt-get install -y python-software-properties software-pro
 # Run the rest of the commands as the ``postgres`` user created by the ``postgres-9.3`` package when it was ``apt-get installed``
 USER postgres
 
+COPY artists.csv /tmp/artists.csv
+COPY titles.csv /tmp/titles.csv
+COPY years.csv /tmp/years.csv
+
 # Create a PostgreSQL role named ``docker`` with ``docker`` as the password and
 # then create a database `docker` owned by the ``docker`` role.
 # Note: here we use ``&&\`` to run commands one after the other - the ``\``
@@ -44,6 +48,9 @@ USER postgres
 RUN    /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
     createdb -O docker docker
+
+RUN /etc/init.d/postgresql start && psql --file create-table.sql && psql --file copy-data.sql
+#"CREATE TABLE blah (column info)” “\copy blah FROM ‘/tmp/foo.csv’ DELIMITER ‘,’ CSV”
 
 # Adjust PostgreSQL configuration so that remote connections to the
 # database are possible.
